@@ -1,4 +1,4 @@
-# 🏎️ Birbuçuk Formula Yazılım - Bootcamp 2025-2026
+# 🏎️ Birbuçuk Formula Yazılım - Bootcamp 2025
 
 Bu repo, **Birbuçuk Formula** takımının aday mühendisleri için hazırlanan **Eğitim ve Görev Takip** sistemidir.
 
