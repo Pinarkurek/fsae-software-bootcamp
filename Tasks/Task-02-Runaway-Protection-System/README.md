@@ -1,29 +1,39 @@
-Görev 2 : Çift Sensörlü Gaz Pedalı Güvenliği (APPS Logic)
-🎯 Amaç: "Mühendis Gibi Düşünmek"
-Bir yarış aracında gaz pedalına güvenemezsiniz. Kablo kopabilir, sensör bozulabilir. Bu yüzden araçlarda 2 farklı sensör bulunur.
+# 🏎️ Görev 2: Çift Sensörlü Gaz Pedalı Güvenliği (APPS Logic)
 
-Problem: Ya sensörün biri "%100 Gaz" derken, diğeri "%0 Gaz" derse? Araba ne yapmalı? Gaza mı basmalı? Durmalı mı?
 
-Görev: FSAE T11.8 kuralını uygulayan, hatalı sensör verilerini yakalayıp aracı güvenli moda alan bir Karar Algoritması yazmak.
+## 🎯 Amaç: "Mühendis Gibi Düşünmek"
+Bir yarış aracında gaz pedalına güvenemezsiniz. Kablo kopabilir, sensör bozulabilir veya kısa devre yapabilir. Bu yüzden FSAE kuralları gereği araçlarda **2 farklı sensör** bulunur.
 
-⚙️ Senaryo ve Kurallar (The Logic Puzzle)
-Elinizde PedalSistemi adında bir struct var. İçinde sensor_1 ve sensor_2 verileri var.
+**Problem:** Ya sensörün biri "%100 Gaz" derken, diğeri "%0 Gaz" derse? Araba ne yapmalı? Gaza mı basmalı? Yoksa durmalı mı?
 
-Kurallar (Algoritma):
+Bu görevde; **FSAE T11.8** kuralını uygulayan, hatalı sensör verilerini yakalayıp aracı **Güvenli Moda (Safe State)** alan bir karar algoritması yazacaksınız.
 
-Fark Kontrolü: İki sensör arasındaki fark %10'dan fazlaysa bu bir HATADIR. (Örn: Biri 50, diğeri 65 ise fark 15 -> HATA).
+---
 
-Karar:
+## ⚙️ Senaryo ve Kurallar (The Logic Puzzle)
 
-Eğer hata yoksa: İki sensörün ortalamasını al ve motoru çalıştır.
+Elinizde sanal bir gaz pedalı var. Kullanıcıdan iki farklı sensör değeri (0-100 arası) alacaksınız.
 
-Eğer hata varsa: Motor gücünü DERHAL 0 yap ve ekrana "IMPLAUSIBILITY ERROR" yaz.
+### FSAE Kuralı (T11.8 - Implausibility Check)
+1.  **Fark Kontrolü:** İki sensör arasındaki fark **%10'dan fazlaysa** bu bir HATADIR (Implausibility).
+    * *Örnek:* Sensör A: 50, Sensör B: 65 -> Fark 15 -> **HATA!**
+2.  **Karar Mekanizması:**
+    * **Eğer HATA YOKSA:** İki sensörün ortalamasını al ve `tork_istegi` olarak motoru sür.
+    * **Eğer HATA VARSA:** Motor gücünü (`tork_istegi`) DERHAL **0** yap ve ekrana hata mesajı bas.
 
-Matematiksel Zorluk: Fark negatif de çıkabilir (40 - 50 = -10). Mutlak değer mantığını (abs fonksiyonu veya if ile) kendiniz kurmalısınız.
+---
 
-🛠️ Teknik Gereksinimler
-Struct Zorunluluğu: Tüm veriler (Sensör 1, Sensör 2, Hata Durumu, Sonuç Torku) tek bir struct içinde olmalı.
+## 🛠️ Teknik Gereksinimler
 
-Kullanıcı Girişi: Program kullanıcıdan 2 sayı girmesini isteyecek: Sensor 1 ve Sensor 2.
+Kodunuz aşağıdaki kısıtlamalara harfiyen uymalıdır:
 
-Problem Çözme: Hazır abs() fonksiyonu kullanmadan, iki sayı arasındaki farkı pozitif olarak hesaplayan mantığı if-else ile kurun.
+### 1. Struct Zorunluluğu
+Tüm veriler dağınık değişkenlerde değil, tek bir `struct` çatısı altında olmalıdır.
+```c
+// Örnek Yapı
+typedef struct {
+    int sensor_1;       // 1. Sensör verisi
+    int sensor_2;       // 2. Sensör verisi
+    int tork_istegi;    // Sonuç motor gücü
+    int hata_durumu;    // 0: Normal, 1: Hata
+} PedalSistemi;
