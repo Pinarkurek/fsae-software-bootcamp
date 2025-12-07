@@ -1,39 +1,51 @@
-# 🏎️ Görev 2: Çift Sensörlü Gaz Pedalı Güvenliği (APPS Logic)
+# 🏎️ Görev 2: İleri Seviye Gaz Pedalı Algoritması (ADC & Safety)
 
+## 🎯 Amaç: Gerçek Dünya Verisiyle Çalışmak
+Bir önceki seviyede size hazır yüzdeler vermiştik. Ancak gerçek dünyada sensörler (Potansiyometre veya Hall Effect) bize anlamsız **Voltaj Değerleri (ADC)** üretir.
 
-## 🎯 Amaç: "Mühendis Gibi Düşünmek"
-Bir yarış aracında gaz pedalına güvenemezsiniz. Kablo kopabilir, sensör bozulabilir veya kısa devre yapabilir. Bu yüzden FSAE kuralları gereği araçlarda **2 farklı sensör** bulunur.
-
-**Problem:** Ya sensörün biri "%100 Gaz" derken, diğeri "%0 Gaz" derse? Araba ne yapmalı? Gaza mı basmalı? Yoksa durmalı mı?
-
-Bu görevde; **FSAE T11.8** kuralını uygulayan, hatalı sensör verilerini yakalayıp aracı **Güvenli Moda (Safe State)** alan bir karar algoritması yazacaksınız.
+Bu görevde bir Gömülü Yazılımcı gibi davranacak; ham veriyi işleyecek, voltaj sınırlarını denetleyecek ve güvenli sürüşü sağlayacaksınız.
 
 ---
 
-## ⚙️ Senaryo ve Kurallar (The Logic Puzzle)
+## ⚙️ Senaryo: Ham Veriden Torka
 
-Elinizde sanal bir gaz pedalı var. Kullanıcıdan iki farklı sensör değeri (0-100 arası) alacaksınız.
+Elinizde **12-bit ADC** (Analog-to-Digital Converter) okuyan bir sistem var.
+* **Min Değer (0V):** 0
+* **Max Değer (3.3V):** 4095
 
-### FSAE Kuralı (T11.8 - Implausibility Check)
-1.  **Fark Kontrolü:** İki sensör arasındaki fark **%10'dan fazlaysa** bu bir HATADIR (Implausibility).
-    * *Örnek:* Sensör A: 50, Sensör B: 65 -> Fark 15 -> **HATA!**
-2.  **Karar Mekanizması:**
-    * **Eğer HATA YOKSA:** İki sensörün ortalamasını al ve `tork_istegi` olarak motoru sür.
-    * **Eğer HATA VARSA:** Motor gücünü (`tork_istegi`) DERHAL **0** yap ve ekrana hata mesajı bas.
+Ancak sensörlerimiz fiziksel olarak pedalın en altına ve en üstüne değmez.
+* **Sensör 1 Çalışma Aralığı:** 1000 (0% Gaz) - 4000 (100% Gaz)
+* **Sensör 2 Çalışma Aralığı:** 500 (0% Gaz) - 2500 (100% Gaz) *(Not: İkinci sensör farklı aralıkta çalışır!)*
+
+### Kurallar Zinciri (Pipeline)
+
+Kodunuz sırasıyla şu 3 aşamadan geçmelidir:
+
+#### 1. Sınır Kontrolü (Out of Range Check - T11.8.8)
+Sensörler fiziksel sınırlarının dışına çıkarsa (Kablo koptu veya Kısa devre oldu), sistem anında **HATA** vermelidir.
+* Eğer Sensör 1 < 1000 veya > 4000 ise -> **HATA**
+* Eğer Sensör 2 < 500 veya > 2500 ise -> **HATA**
+
+#### 2. Mapping (Veri Dönüştürme)
+Ham ADC verisini 0-100 arasına lineer oranlamanız (Linear Mapping) gerekir.
+* Matematiksel Formül: $y = (x - in\_min) * (out\_max - out\_min) / (in\_max - in\_min) + out\_min$
+* *İpucu:* Bunu bir fonksiyon haline getirip her iki sensör için de kullanın.
+
+#### 3. Tutarlılık Kontrolü (Plausibility Check - T11.8.9)
+Dönüştürülmüş yüzdeler (%) arasındaki fark **%10'dan büyükse** -> **HATA**
 
 ---
 
 ## 🛠️ Teknik Gereksinimler
 
-Kodunuz aşağıdaki kısıtlamalara harfiyen uymalıdır:
-
-### 1. Struct Zorunluluğu
-Tüm veriler dağınık değişkenlerde değil, tek bir `struct` çatısı altında olmalıdır.
+### 1. Struct Yapısı
+Veriler global değişkenlerde değil, bir yapı içinde taşınmalıdır.
 ```c
-// Örnek Yapı
 typedef struct {
-    int sensor_1;       // 1. Sensör verisi
-    int sensor_2;       // 2. Sensör verisi
-    int tork_istegi;    // Sonuç motor gücü
-    int hata_durumu;    // 0: Normal, 1: Hata
-} PedalSistemi;
+    int raw_adc_1;      // Ham ADC verisi (Kullanıcı girecek)
+    int raw_adc_2;      // Ham ADC verisi (Kullanıcı girecek)
+    int percent_1;      // Hesaplanmış %
+    int percent_2;      // Hesaplanmış %
+    int final_torque;   // Motora giden tork
+    char status[20];    // "OK", "OutOfRange", "Implausible"
+} PedalState;
