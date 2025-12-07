@@ -1,7 +1,6 @@
 # 🐙 Görev 1: GitHub Operasyon ve Yönetim Kılavuzu
 
-**Son Teslim:** [Tarih Giriniz]
-**Format:** PDF Sunumu (Eğitici Görseller ve Diyagramlar ile)
+
 
 ## 🎯 Amaç
 Bu görevde sizden kod yazmanızı değil, **Geleceğin Teknik Lideri** olarak takıma yeni katılan bir üyeye GitHub ekosistemini anlatmanızı istiyoruz.
