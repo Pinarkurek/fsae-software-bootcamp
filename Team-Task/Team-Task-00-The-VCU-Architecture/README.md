@@ -1,4 +1,4 @@
-🏎️ Görev 4: VCU Mimarisi, 10 Kural ve Protokol Tasarımı
+🏎️ Görev 00: VCU Mimarisi, 10 Kural ve Protokol Tasarımı
 📚 Gerekli Konseptler
 Modular C: .c ve .h ayrımı.
 
